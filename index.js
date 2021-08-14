@@ -1,7 +1,56 @@
+require('dotenv').config();
+const path = require('path');
 const Discord = require('discord.js');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
+const { getModulesFromDir } = require('./util/fsHelper');
+
+// Set up Discord client
+const client = new Discord.Client({ intents: [Discord.Intents.FLAGS.GUILDS] });
+client.CMDs = new Discord.Collection();
+const guildCMDs = [],
+	globalCMDs = [];
+
+// Handle Commands
+getModulesFromDir({
+	dirPath: path.resolve(__dirname, 'commands'),
+	spreadArr: true,
+	returnFileList: false,
+	cb: (cmd) => {
+		client.CMDs.set(cmd.data.name, cmd);
+		if (cmd.guild) guildCMDs.push(cmd.data.toJSON());
+		if (cmd.global) globalCMDs.push(cmd.data.toJSON());
+	},
+});
+
+// Handle Events
+getModulesFromDir({
+	dirPath: path.resolve(__dirname, 'events'),
+	spreadArr: true,
+	returnFileList: false,
+	cb: (e) => {
+		if (e.once) client.once(e.name, (...args) => e.exec(client, ...args));
+		else client.on(e.name, (...args) => e.exec(client, ...args));
+	},
+});
+
+// Set up slash commands
+const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
+(async () => {
+	try {
+		await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: guildCMDs });
+		await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: globalCMDs });
+		console.log('Successfully set application (/) commands.');
+	} catch (error) {
+		console.error(error);
+	}
+})();
+
+// Start up Bot
+client.login(process.env.TOKEN);
+
+/* 
 const Client = new Discord.Client();
-require('dotenv').config({ path: `${__dirname}/config.env` });
-const token = process.env.TOKEN;
 
 Client.on('ready', () => {
 	console.log(`Logged in as ${Client.user.tag}`);
@@ -72,4 +121,5 @@ function roll(msg, diceAmount = 1, rollingAmount = 6, bonusDAmount = 0, bonusDRo
 	console.log(`Response sent: \n${response}`);
 }
 
-Client.login(token);
+Client.login(TOKEN);
+ */
