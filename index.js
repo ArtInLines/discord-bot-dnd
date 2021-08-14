@@ -12,6 +12,7 @@ Client.on('message', (msg) => {
 	let cmd = msg.content.toLowerCase();
 	if (cmd == 'roll' || cmd == 'r') return roll(msg);
 	if (!cmd.startsWith('roll') && !cmd.startsWith('r')) return;
+
 	cmd = cmd.replace('+', ' ');
 	cmd = cmd.split(/ +/);
 	cmd.splice(0, 1);
