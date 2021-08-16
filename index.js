@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const Client = new Discord.Client();
-require('dotenv').config({ path: `${__dirname}/config.env` });
+require('dotenv').config();
 const token = process.env.TOKEN;
 
 Client.on('ready', () => {
@@ -11,7 +11,7 @@ Client.on('ready', () => {
 Client.on('message', (msg) => {
 	let cmd = msg.content.toLowerCase();
 	if (cmd == 'roll' || cmd == 'r') return roll(msg);
-	if (!cmd.startsWith('roll') && !cmd.startsWith('r')) return;
+	if (!cmd.startsWith('roll') && !cmd.startsWith('r ')) return;
 
 	cmd = cmd.replace('+', ' ');
 	cmd = cmd.split(/ +/);
